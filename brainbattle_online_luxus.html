@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BrainBattle Online — Luxus Edition</title>
+  <meta name="theme-color" content="#0b0b0b" />
+  <style>
+    :root{
+      --bg:#070707; --panel:#0e0e0e; --gold:#d4af37; --gold2:#f5d36a;
+      --muted:#b8b8b8; --ok:#22c55e; --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 800px at 20% 0%, #121212 0%, var(--bg) 55%);
+      color: #f7f2d6;
+    }
+    header{
+      padding:18px 16px 10px;
+      text-align:center;
+    }
+    .brand{
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      letter-spacing:2px; font-weight:800;
+    }
+    .logo{
+      width:38px; height:38px; border-radius:12px;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color:#000; display:grid; place-items:center; font-weight:900;
+      box-shadow: 0 10px 40px rgba(212,175,55,.25);
+      user-select:none;
+    }
+    .sub{color:var(--muted); font-size:13px; margin-top:6px}
+    main{max-width:980px; margin:0 auto; padding:10px 14px 22px}
+    .grid{display:grid; gap:12px}
+    @media(min-width:900px){ .grid{grid-template-columns: 380px 1fr;} }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,215,100,.04), rgba(255,215,100,.00));
+      border:1px solid rgba(212,175,55,.35);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+    h2{margin:0 0 10px; letter-spacing:1px; font-size:16px}
+    label{display:block; text-align:left; color:var(--muted); font-size:12px; margin:10px 2px 6px}
+    input, textarea{
+      width:100%; padding:12px 12px; border-radius:12px;
+      border:1px solid rgba(212,175,55,.25);
+      background: rgba(0,0,0,.35);
+      color:#fff;
+      outline:none;
+    }
+    textarea{min-height:44px; resize:vertical}
+    .row{display:flex; gap:10px}
+    .row > *{flex:1}
+    .btn{
+      width:100%; border:none; border-radius:12px; padding:12px 12px;
+      font-weight:800; cursor:pointer;
+      background: linear-gradient(135deg, var(--gold), var(--gold2));
+      color:#000;
+    }
+    .btn.secondary{
+      background: transparent; color:#fff;
+      border:1px solid rgba(212,175,55,.5);
+    }
+    .btn.ghost{
+      background: rgba(255,255,255,.06); color:#fff;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .btn:disabled{opacity:.55; cursor:not-allowed}
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid rgba(212,175,55,.35);
+      background: rgba(212,175,55,.06);
+      color:#fff; font-size:12px;
+    }
+    .statusDot{
+      width:8px; height:8px; border-radius:50%;
+      background: #666;
+      box-shadow: 0 0 0 4px rgba(255,255,255,.04);
+    }
+    .statusDot.on{background:var(--ok); box-shadow:0 0 0 4px rgba(34,197,94,.12)}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;}
+    .hidden{display:none !important}
+
+    .chatBox, .qBox{
+      height: 320px;
+      overflow:auto;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid rgba(212,175,55,.25);
+      background: rgba(0,0,0,.25);
+    }
+    .msg{margin:8px 0; line-height:1.25}
+    .msg .meta{color:var(--muted); font-size:11px}
+    .msg .bubble{
+      margin-top:4px;
+      display:inline-block;
+      padding:10px 10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.06);
+      max-width: 92%;
+      word-wrap:break-word;
+    }
+    .msg.me .bubble{
+      border-color: rgba(212,175,55,.35);
+      background: rgba(212,175,55,.10);
+    }
+    .msg.system .bubble{
+      border-style:dashed;
+      color:#e7e7e7;
+      background: rgba(255,255,255,.04);
+    }
+
+    .qItem{
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(255,255,255,.04);
+      padding:10px 10px;
+      border-radius:14px;
+      margin:10px 0;
+    }
+    .qTop{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+    .qText{font-weight:700}
+    .qAns{font-size:12px; color:var(--muted); margin-top:6px}
+    .qBtns{display:flex; gap:8px; margin-top:10px; flex-wrap:wrap}
+    .qBtns button{
+      border-radius:999px; padding:8px 10px; border:none; cursor:pointer; font-weight:800;
+    }
+    .yes{background: rgba(34,197,94,.18); border:1px solid rgba(34,197,94,.35); color:#d7ffe3}
+    .no{background: rgba(239,68,68,.16); border:1px solid rgba(239,68,68,.35); color:#ffe0e0}
+    .maybe{background: rgba(245,211,106,.12); border:1px solid rgba(212,175,55,.35); color:#fff2c2}
+    .lock{
+      background: rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.10); color:#fff;
+      border-radius:999px; padding:8px 10px; font-weight:800; cursor:pointer;
+    }
+    .toast{
+      position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+      background: rgba(0,0,0,.80);
+      border:1px solid rgba(212,175,55,.35);
+      color:#fff;
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:12px;
+      opacity:0; pointer-events:none;
+      transition: opacity .2s ease;
+      max-width: min(92vw, 720px);
+    }
+    .toast.on{opacity:1}
+    a{color:#ffe6a3}
+    .hr{height:1px; background:rgba(255,255,255,.08); margin:12px 0}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">BB</div>
+      <div>
+        <div style="font-size:18px">BrainBattle Online</div>
+        <div class="sub">Luxus Edition • Szobakód • Live chat • Kérdések & tippek</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="grid">
+    <!-- LEFT: Lobby / Room -->
+    <section class="card" id="panelLobby">
+      <h2>🎛️ Lobby</h2>
+
+      <div class="pill" style="margin-bottom:10px">
+        <span class="statusDot" id="dot"></span>
+        <span id="connText" class="small">Nincs kapcsolódva</span>
+      </div>
+
+      <div id="step0">
+        <label>Neved</label>
+        <input id="name" placeholder="pl. Sergio / JH / Dani" />
+
+        <div class="hr"></div>
+
+        <button class="btn" id="btnHost">Szoba létrehozása (Játékmester)</button>
+
+        <div style="height:8px"></div>
+
+        <label>Szobakód (ha csatlakozol)</label>
+        <input id="joinCode" class="mono" placeholder="pl. A1B2C3" />
+
+        <button class="btn secondary" id="btnJoin">Csatlakozás szobához</button>
+
+        <p class="muted small" style="margin-top:10px">
+          Tipp: ha a haverokkal játszol, a játékmester csinál szobát, elküldi a kódot, a többiek csatlakoznak.
+        </p>
+      </div>
+
+      <div id="stepHost" class="hidden">
+        <div class="pill"><span class="mono" id="roomCode">------</span> <span class="muted">szobakód</span></div>
+
+        <div style="height:10px"></div>
+
+        <label>Host PIN (ezzel titkosítjuk a személyt)</label>
+        <input id="pin" type="password" placeholder="pl. 1234 vagy valami erős" />
+
+        <label>1. személy</label>
+        <input id="secret1" placeholder="pl. Cristiano Ronaldo" />
+
+        <label>2. személy (opcionális)</label>
+        <input id="secret2" placeholder="pl. Messi" />
+
+        <button class="btn" id="btnStart">Játék indítása</button>
+
+        <p class="muted small" style="margin-top:10px">
+          A személy(ek) <b>nem látszanak</b> a többieknek. A PIN nélkül nem lehet visszafejteni.
+        </p>
+
+        <button class="btn ghost" id="btnCopy">Kód másolása</button>
+      </div>
+
+      <div id="stepJoined" class="hidden">
+        <div class="pill"><span class="mono" id="roomCode2">------</span> <span class="muted">szobakód</span></div>
+        <p class="muted small" style="margin-top:10px">
+          Csatlakozva vagy. Várd meg, amíg a játékmester elindítja a játékot.
+        </p>
+        <button class="btn ghost" id="btnLeave">Kilépés</button>
+      </div>
+
+      <div class="hr"></div>
+
+      <div>
+        <h2>🏆 Stat</h2>
+        <div id="stats" class="small muted">—</div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Game -->
+    <section class="card">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+        <h2 style="margin:0">🎮 Játék</h2>
+        <div class="pill small">Szerep: <b id="roleText">—</b></div>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <button class="btn secondary" id="tabQ">❓ Kérdések</button>
+        <button class="btn secondary" id="tabChat">💬 Chat</button>
+      </div>
+
+      <div style="height:10px"></div>
+
+      <!-- QUESTIONS TAB -->
+      <div id="viewQ">
+        <div class="qBox" id="qBox"></div>
+
+        <div style="height:10px"></div>
+
+        <label>Kérdés (mindenki)</label>
+        <textarea id="qInput" placeholder="pl. Focista? Magyar? Él még?"></textarea>
+        <button class="btn" id="btnAsk">Kérdés beküldése</button>
+
+        <div class="hr"></div>
+
+        <label>Tipp (mindenki)</label>
+        <input id="gInput" placeholder="Szerintem ő az..." />
+        <button class="btn" id="btnGuess">Tipp!</button>
+
+        <p id="guessResult" class="small muted" style="margin-top:8px"></p>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <button class="lock" id="btnReveal">🔐 Csak host: Személy felfedése</button>
+          <button class="btn ghost" id="btnNewRound">Új kör (reset)</button>
+        </div>
+      </div>
+
+      <!-- CHAT TAB -->
+      <div id="viewChat" class="hidden">
+        <div class="chatBox" id="chatBox"></div>
+
+        <div style="height:10px"></div>
+
+        <label>Üzenet</label>
+        <input id="cInput" placeholder="Írj valamit..." />
+        <button class="btn" id="btnSend">Küldés</button>
+      </div>
+
+      <p class="muted small" style="margin-top:10px">
+        Online működéshez ezt a fájlt fel kell tölteni Netlify-ra, és be kell állítani Firebase-t (útmutató lent).
+      </p>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- Firebase (Compat for simplicity) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-database-compat.js"></script>
+
+  <script>
+  /************************************************************
+   * 1) IDE TEDD A SAJÁT FIREBASE KONFIGODAT (kötelező)
+   ************************************************************/
+  const firebaseConfig = {
+    // PÉLDA (cseréld le!):
+    // apiKey: "....",
+    // authDomain: "....firebaseapp.com",
+    // databaseURL: "https://....-default-rtdb.europe-west1.firebasedatabase.app",
+    // projectId: "....",
+    // storageBucket: "....appspot.com",
+    // messagingSenderId: "....",
+    // appId: "...."
+  };
+
+  /************************************************************
+   * Luxus Online BrainBattle — Firebase Realtime DB
+   * - Host titkosítva tárolja a személy(eket) PIN-nel (AES-GCM)
+   * - Kérdések/Chat/Tipp: élő szinkron
+   ************************************************************/
+
+  const $ = (id)=>document.getElementById(id);
+  const toast = (t)=>{ const el=$("toast"); el.textContent=t; el.classList.add("on"); setTimeout(()=>el.classList.remove("on"), 1800); };
+
+  // UI elements
+  const dot=$("dot"), connText=$("connText");
+  const roleText=$("roleText");
+
+  const step0=$("step0"), stepHost=$("stepHost"), stepJoined=$("stepJoined");
+  const roomCode=$("roomCode"), roomCode2=$("roomCode2");
+
+  const tabQ=$("tabQ"), tabChat=$("tabChat");
+  const viewQ=$("viewQ"), viewChat=$("viewChat");
+
+  // State
+  let app=null, db=null, auth=null;
+  let user=null;
+  let myName="";
+  let myRole="player"; // host/player
+  let roomId=null;
+  let roomRef=null;
+  let listenersOn=false;
+
+  // stats
+  let games=0, wins=0;
+
+  // Helpers
+  const now = ()=>new Date().toISOString();
+  const safeCode = (s)=> (s||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6);
+
+  function setConnected(on){
+    dot.classList.toggle("on", !!on);
+    connText.textContent = on ? "Kapcsolódva" : "Nincs kapcsolódva";
+  }
+
+  function showTab(which){
+    if(which==="q"){
+      viewQ.classList.remove("hidden");
+      viewChat.classList.add("hidden");
+      tabQ.style.opacity=1;
+      tabChat.style.opacity=.75;
+    }else{
+      viewChat.classList.remove("hidden");
+      viewQ.classList.add("hidden");
+      tabChat.style.opacity=1;
+      tabQ.style.opacity=.75;
+    }
+  }
+
+  tabQ.onclick=()=>showTab("q");
+  tabChat.onclick=()=>showTab("chat");
+  showTab("q");
+
+  // Crypto (Web Crypto)
+  async function deriveKey(pin, salt){
+    const enc = new TextEncoder();
+    const baseKey = await crypto.subtle.importKey("raw", enc.encode(pin), "PBKDF2", false, ["deriveKey"]);
+    return crypto.subtle.deriveKey(
+      {name:"PBKDF2", salt, iterations: 150000, hash:"SHA-256"},
+      baseKey,
+      {name:"AES-GCM", length:256},
+      false,
+      ["encrypt","decrypt"]
+    );
+  }
+
+  async function encryptSecrets(pin, s1, s2){
+    const enc = new TextEncoder();
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const key = await deriveKey(pin, salt);
+    const payload = JSON.stringify({s1:s1||"", s2:s2||""});
+    const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, key, enc.encode(payload));
+    // base64 helpers
+    const b64 = (buf)=>btoa(String.fromCharCode(...new Uint8Array(buf)));
+    return {
+      iv: b64(iv),
+      salt: b64(salt),
+      ct: b64(ct)
+    };
+  }
+
+  async function decryptSecrets(pin, blob){
+    const dec = new TextDecoder();
+    const u8 = (b64)=>Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+    const iv=u8(blob.iv), salt=u8(blob.salt), ct=u8(blob.ct);
+    const key=await deriveKey(pin, salt);
+    const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv}, key, ct);
+    return JSON.parse(dec.decode(pt));
+  }
+
+  // Firebase init
+  function initFirebase(){
+    // if config is empty, show warning but still let UI load
+    if(!firebaseConfig || !firebaseConfig.apiKey){
+      setConnected(false);
+      $("stats").innerHTML = `<span style="color:#ffd28a">⚠️ Nincs beállítva Firebase config.</span><br>
+      Kövesd az útmutatót a fájl alján, és illeszd be a firebaseConfig-et.`;
+      return false;
+    }
+    app = firebase.initializeApp(firebaseConfig);
+    auth = firebase.auth();
+    db = firebase.database();
+    // Anonymous auth for easy use
+    return true;
+  }
+
+  async function signIn(){
+    await auth.signInAnonymously();
+    user = auth.currentUser;
+    setConnected(true);
+  }
+
+  // Room ops
+  function generateRoom(){
+    const alphabet="ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+    let s="";
+    for(let i=0;i<6;i++) s += alphabet[Math.floor(Math.random()*alphabet.length)];
+    return s;
+  }
+
+  function uiToHost(code){
+    step0.classList.add("hidden");
+    stepJoined.classList.add("hidden");
+    stepHost.classList.remove("hidden");
+    roomCode.textContent = code;
+    roleText.textContent = "Játékmester";
+  }
+  function uiToJoined(code){
+    step0.classList.add("hidden");
+    stepHost.classList.add("hidden");
+    stepJoined.classList.remove("hidden");
+    roomCode2.textContent = code;
+    roleText.textContent = "Játékos";
+  }
+  function uiToHome(){
+    stepHost.classList.add("hidden");
+    stepJoined.classList.add("hidden");
+    step0.classList.remove("hidden");
+    roleText.textContent = "—";
+  }
+
+  function cleanBoxes(){
+    $("chatBox").innerHTML="";
+    $("qBox").innerHTML="";
+    $("guessResult").textContent="";
+  }
+
+  function renderMsg(m){
+    const box=$("chatBox");
+    const div=document.createElement("div");
+    div.className = "msg " + (m.uid===user.uid ? "me" : "") + (m.type==="system" ? "system" : "");
+    div.innerHTML = `<div class="meta">${escapeHtml(m.name||"Rendszer")} • ${new Date(m.ts||Date.now()).toLocaleTimeString()}</div>
+                     <div class="bubble">${escapeHtml(m.text||"")}</div>`;
+    box.appendChild(div);
+    box.scrollTop=box.scrollHeight;
+  }
+
+  function renderQuestion(id, q){
+    const box=$("qBox");
+    let el = document.getElementById("q_"+id);
+    if(!el){
+      el=document.createElement("div");
+      el.className="qItem";
+      el.id="q_"+id;
+      box.appendChild(el);
+    }
+    const ans = q.answer || "—";
+    el.innerHTML = `
+      <div class="qTop">
+        <div>
+          <div class="qText">❓ ${escapeHtml(q.text||"")}</div>
+          <div class="qAns">Válasz: <b>${escapeHtml(ans)}</b> • ${escapeHtml(q.by||"")}</div>
+        </div>
+        <div class="muted small">${new Date(q.ts||Date.now()).toLocaleTimeString()}</div>
+      </div>
+      ${myRole==="host" ? `
+        <div class="qBtns">
+          <button class="yes" data-a="IGEN">IGEN</button>
+          <button class="no" data-a="NEM">NEM</button>
+          <button class="maybe" data-a="TALÁN">TALÁN</button>
+        </div>
+      ` : ``}
+    `;
+    if(myRole==="host"){
+      el.querySelectorAll("button[data-a]").forEach(btn=>{
+        btn.onclick = ()=> setAnswer(id, btn.getAttribute("data-a"));
+      });
+    }
+    box.scrollTop=box.scrollHeight;
+  }
+
+  function escapeHtml(s){
+    return String(s||"").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+  }
+
+  async function createRoomFlow(){
+    myName = $("name").value.trim();
+    if(!myName){ toast("Írd be a neved!"); return; }
+
+    myRole="host";
+    const code = generateRoom();
+    roomId = code;
+    roomRef = db.ref("rooms/"+roomId);
+
+    // init room
+    await roomRef.set({
+      createdAt: now(),
+      status: "setup",
+      hostUid: user.uid,
+      hostName: myName,
+      stats: { games:0, wins:0 },
+      members: { [user.uid]: { name: myName, role:"host", joinedAt: now() } }
+    });
+
+    uiToHost(code);
+    toast("Szoba létrehozva!");
+    attachRoomListeners();
+  }
+
+  async function joinRoomFlow(){
+    myName = $("name").value.trim();
+    if(!myName){ toast("Írd be a neved!"); return; }
+
+    const code = safeCode($("joinCode").value);
+    if(code.length<4){ toast("Írj be egy szobakódot!"); return; }
+
+    const ref = db.ref("rooms/"+code);
+    const snap = await ref.get();
+    if(!snap.exists()){ toast("Nincs ilyen szoba."); return; }
+
+    roomId = code;
+    roomRef = ref;
+    myRole="player";
+
+    await roomRef.child("members/"+user.uid).set({ name: myName, role:"player", joinedAt: now() });
+
+    uiToJoined(code);
+    toast("Csatlakozva!");
+    attachRoomListeners();
+  }
+
+  async function leaveRoom(){
+    if(roomRef && user){
+      await roomRef.child("members/"+user.uid).remove().catch(()=>{});
+    }
+    detachRoomListeners();
+    roomId=null; roomRef=null; myRole="player"; myName="";
+    cleanBoxes();
+    uiToHome();
+    toast("Kiléptél.");
+  }
+
+  async function startGameFlow(){
+    const pin = $("pin").value;
+    const s1 = $("secret1").value.trim();
+    const s2 = $("secret2").value.trim();
+
+    if(!pin || pin.length<4){ toast("Host PIN minimum 4 karakter."); return; }
+    if(!s1){ toast("Adj meg legalább 1 személyt."); return; }
+
+    const blob = await encryptSecrets(pin, s1, s2);
+    await roomRef.update({
+      status: "live",
+      secretBlob: blob,
+      startedAt: now()
+    });
+
+    await pushSystem(`A játék elindult. Játékmester: ${myName}`);
+    toast("Játék elindítva!");
+  }
+
+  async function pushSystem(text){
+    await roomRef.child("messages").push({
+      type:"system",
+      name:"Rendszer",
+      text,
+      ts: Date.now()
+    });
+  }
+
+  async function sendChat(){
+    const text = $("cInput").value.trim();
+    if(!text) return;
+    $("cInput").value="";
+    await roomRef.child("messages").push({
+      type:"chat",
+      uid: user.uid,
+      name: myName,
+      text,
+      ts: Date.now()
+    });
+  }
+
+  async function askQuestion(){
+    const text = $("qInput").value.trim();
+    if(!text) return;
+    $("qInput").value="";
+    await roomRef.child("questions").push({
+      text,
+      by: myName,
+      uid: user.uid,
+      ts: Date.now(),
+      answer: "—"
+    });
+  }
+
+  async function setAnswer(qid, answer){
+    await roomRef.child("questions/"+qid+"/answer").set(answer);
+  }
+
+  async function guess(){
+    const g = $("gInput").value.trim();
+    if(!g) return;
+    $("gInput").value="";
+
+    // Host does not have PIN on server; only blob. So we do:
+    // - If host: ask for PIN once to reveal and verify locally
+    // - If player: host verifies; BUT to keep it simple and fair, host can click "felfedés" then you can see.
+    // Here: we implement "host local verify" only. For players: it logs guess; host answers in chat.
+    await roomRef.child("guesses").push({
+      text: g,
+      by: myName,
+      uid: user.uid,
+      ts: Date.now()
+    });
+
+    $("guessResult").textContent = "Tipp elküldve. (A játékmester igazolja.)";
+    await roomRef.child("messages").push({
+      type:"system",
+      name:"Rendszer",
+      text:`🎯 Tipp: ${myName} → ${g}`,
+      ts: Date.now()
+    });
+  }
+
+  async function revealSecrets(){
+    if(myRole!=="host"){ toast("Csak host!"); return; }
+    const pin = prompt("Host PIN a felfedéshez:");
+    if(!pin) return;
+    const snap = await roomRef.child("secretBlob").get();
+    if(!snap.exists()){ toast("Nincs titok mentve."); return; }
+    try{
+      const data = await decryptSecrets(pin, snap.val());
+      const list = [data.s1, data.s2].filter(Boolean).join(" + ");
+      toast("Felfedve: " + list);
+      await pushSystem("🔐 A játékmester felfedte a személy(eket).");
+      await roomRef.child("reveal").set({ by: myName, ts: Date.now(), text: list });
+    }catch(e){
+      toast("Rossz PIN.");
+    }
+  }
+
+  async function newRound(){
+    if(!roomRef){ return; }
+    // Only host can reset
+    if(myRole!=="host"){ toast("Csak host resetelhet."); return; }
+
+    await roomRef.update({
+      status:"setup",
+      secretBlob: null,
+      startedAt: null,
+      reveal: null
+    });
+    await roomRef.child("questions").remove().catch(()=>{});
+    await roomRef.child("messages").remove().catch(()=>{});
+    await roomRef.child("guesses").remove().catch(()=>{});
+    cleanBoxes();
+    toast("Új kör kész.");
+  }
+
+  function attachRoomListeners(){
+    if(listenersOn || !roomRef) return;
+    listenersOn=true;
+    cleanBoxes();
+
+    // status / role sync
+    roomRef.on("value", snap=>{
+      if(!snap.exists()){
+        toast("A szoba megszűnt.");
+        leaveRoom();
+        return;
+      }
+      const room = snap.val();
+      // Determine role from room.hostUid
+      myRole = (room.hostUid === user.uid) ? "host" : "player";
+      roleText.textContent = myRole==="host" ? "Játékmester" : "Játékos";
+
+      // Show host setup inputs only if host
+      if(myRole==="host"){
+        // keep host panel visible; joined panel should not override
+        if(stepHost.classList.contains("hidden")) uiToHost(roomId);
+      }else{
+        if(stepJoined.classList.contains("hidden")) uiToJoined(roomId);
+      }
+
+      // Stats
+      const st = room.stats || {games:0,wins:0};
+      $("stats").innerHTML = `Szoba: <span class="mono">${roomId}</span><br>
+      Host: <b>${escapeHtml(room.hostName||"")}</b><br>
+      Állapot: <b>${escapeHtml(room.status||"")}</b><br>
+      Tagok: <b>${room.members ? Object.keys(room.members).length : 0}</b><br>`;
+    });
+
+    // messages (chat/system)
+    roomRef.child("messages").limitToLast(200).on("child_added", s=>{
+      renderMsg(s.val());
+    });
+
+    // questions
+    roomRef.child("questions").on("child_added", s=>{
+      renderQuestion(s.key, s.val());
+    });
+    roomRef.child("questions").on("child_changed", s=>{
+      renderQuestion(s.key, s.val());
+    });
+
+    // reveal (players can see when host revealed)
+    roomRef.child("reveal").on("value", s=>{
+      const v=s.val();
+      if(v && v.text){
+        $("guessResult").textContent = "🔐 Felfedve: " + v.text;
+      }
+    });
+  }
+
+  function detachRoomListeners(){
+    if(!listenersOn || !roomRef) { listenersOn=false; return; }
+    listenersOn=false;
+    roomRef.off();
+    roomRef.child("messages").off();
+    roomRef.child("questions").off();
+    roomRef.child("reveal").off();
+  }
+
+  // Buttons
+  $("btnHost").onclick = async ()=>{
+    if(!db){ toast("Előbb állítsd be a Firebase configot."); return; }
+    await createRoomFlow();
+  };
+  $("btnJoin").onclick = async ()=>{
+    if(!db){ toast("Előbb állítsd be a Firebase configot."); return; }
+    await joinRoomFlow();
+  };
+  $("btnStart").onclick = async ()=>{
+    await startGameFlow();
+  };
+  $("btnSend").onclick = async ()=>{ if(roomRef) await sendChat(); };
+  $("btnAsk").onclick = async ()=>{ if(roomRef) await askQuestion(); };
+  $("btnGuess").onclick = async ()=>{ if(roomRef) await guess(); };
+  $("btnReveal").onclick = async ()=>{ if(roomRef) await revealSecrets(); };
+  $("btnNewRound").onclick = async ()=>{ if(roomRef) await newRound(); };
+  $("btnLeave").onclick = async ()=>{ await leaveRoom(); };
+  $("btnCopy").onclick = async ()=>{
+    try{
+      await navigator.clipboard.writeText(roomId);
+      toast("Kód másolva!");
+    }catch(e){
+      toast("Nem tudtam másolni. Írd ki kézzel.");
+    }
+  };
+
+  // Enter key shortcuts
+  $("cInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("btnSend").click(); });
+  $("gInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("btnGuess").click(); });
+
+  // Init
+  (async function boot(){
+    const ok = initFirebase();
+    if(!ok) return;
+
+    try{
+      await signIn();
+      // Presence (optional)
+      const connectedRef = db.ref(".info/connected");
+      connectedRef.on("value", (snap)=> setConnected(!!snap.val()));
+    }catch(e){
+      setConnected(false);
+      $("stats").innerHTML = `<span style="color:#ffd28a">⚠️ Nem sikerült csatlakozni Firebase-hez.</span><br>
+      Ellenőrizd a firebaseConfig-et és a Realtime Database beállításokat.`;
+    }
+  })();
+  </script>
+
+  <!-- Mini guide (visible in View Source) -->
+  <!--
+  =========================
+  BRAINBATTLE ONLINE ÚTMUTATÓ (5-10 perc)
+  =========================
+
+  A) FIREBASE (Realtime Database) — ingyenes
+  1) Menj a Firebase Console-ba: console.firebase.google.com
+  2) Create project (pl. brainbattle)
+  3) Build → Realtime Database → Create Database
+     - Start in test mode (később lehet szigorítani)
+  4) Build → Authentication → Sign-in method → Anonymous → ENABLE
+  5) Project settings → Your apps → Add app → Web
+     - Másold ki a firebaseConfig-et
+
+  B) ILLeszd be a firebaseConfig-et ebbe a fájlba (fent, a firebaseConfig objektumba)
+
+  C) NETLIFY (ingyenes host)
+  1) netlify.com → Sign up (Gmail-lel)
+  2) Sites → Add new site → Deploy manually
+  3) Húzd be ezt az index.html-t (vagy nevezd át úgy) a Netlify feltöltőre
+  4) Kapsz egy linket → elküldöd haveroknak → kész
+
+  Tipp:
+  - Ha több fájlosra akarod (ikon, PWA), szólhatsz és bővítjük.
+  -->
+</body>
+</html>
